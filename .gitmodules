@@ -1,0 +1,3 @@
+[submodule "notebook/themes/next"]
+	path = notebook/themes/next
+	url = https://github.com/skk1faker/Next.git
