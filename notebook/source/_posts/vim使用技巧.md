@@ -24,3 +24,16 @@ for i in range(10):
 
 3. 一些优秀的配置
 https://wklken.me/posts/2016/02/03/some-vim-configs.html
+
+## netrw使用技巧
+
+ 1. `:e filename`可以增加文件
+ 2. 文件使用`o`将文件与netrw进行横向分屏，`v`将文件与netrw纵向分屏，`p`预览文件同时光标在netrw上，此时使用`C-W c`即可关闭预览文件。
+ 3. 回车也可以打开一个文件，此时使用`C-o`即可回到netrw处。
+ 4. i键可以改变目录排列风格
+
+4.  <C-a>和<C-leader>的作用
+重复上一次的插入
+
+## 跳转
+1. gx可以跳转到一些网页

@@ -35,3 +35,50 @@ https://blog.csdn.net/Robin_Pi/article/details/115004870
 4. ~/.local/share/Trash
 
 linux的垃圾箱
+
+5. baobab可以查询大文件，然后进行删除。
+
+6. 使用snap清理时出现“Save data of snap “docker“ in automatic snapshot set #3”这说明snap在清理时创建了快照   
+
+如果中途你暂停了，那么可能再次删除会出现 “错误：snap "steam" has "remove-snap" change in progress”，此时需要简单修复以下： 
+```bash
+snap changes
+sudo snap abort <ID number>				#注意这个id是上一步snap change给出的结果
+sudo reboot
+snap set core snapshots.automatic.retention=no 
+# sudo snap remove steam
+```
+
+这是只需要使用`snap remove --purge <package>`即可，
+
+7. 清理snap快照
+
+```bash
+snap saved		#查看有哪些快照
+snap forget <id> # id为上一命令输出的滴一列值
+
+```
+如果snap saved中没有快照，那么可以去`/var/lib/snapd/snapshots`中查看，查到有东西可以直接删除
+
+[参考自](https://askubuntu.com/questions/1283423/is-it-safe-to-delete-var-lib-snapd-snapshots)
+
+8. 清理snap以前本版本的安装包：
+主要使用以下脚本：
+```bash
+#!/bin/bash  
+#Removes old revisions of snaps  
+#CLOSE ALL SNAPS BEFORE RUNNING THIS  
+set -eu  
+LANG=en_US.UTF-8 
+snap list --all | awk '/disabled/{print $1, $3}' |
+	while read snapname revision; do
+		snap remove "$snapname" --revision="$revision"
+	done
+```
+
+9. 软件清理缓存：
+
+sudo apt install bleachbit
+[ubuntu清理的4中方法](https://www.debugpoint.com/4-simple-steps-clean-ubuntu-system-linux/)
+https://www.debugpoint.com/4-simple-steps-clean-ubuntu-system-linux/
+sudo apt install bleachbit
