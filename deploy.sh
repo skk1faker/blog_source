@@ -11,6 +11,6 @@
 #===============================================================*/
 
 
-cd ~/website/notebook
+cd ~/note/notebook
 hexo clean
 hexo deploy

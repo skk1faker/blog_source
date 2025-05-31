@@ -102,8 +102,10 @@ theme: next
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: git@github.com:skk1faker/skk1faker.github.io.git
-  branch: main
+  # repo: git@github.com:skk1faker/skk1faker.github.io.git
+  # repo: git@113.44.5.225:/var/repo/blog.git
+  repo: git@113.44.5.225:/home/git/project/hexo.git
+  branch: master
 
 # locak_search
 search:

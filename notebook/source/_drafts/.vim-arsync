@@ -1,0 +1,10 @@
+remote_host    localhost 
+remote_user    u0_a203
+remote_port	   8022
+remote_path    /data/data/com.termux/files/home/termux/notebook/_drafts
+local_path     /data/data/com.termux/files/home/note/notebook/source/_drafts
+ignore_path     []
+ignore_dotfiles 1
+auto_sync_up    1
+remote_or_local	local
+sleep_before_sync 0
