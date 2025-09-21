@@ -67,7 +67,7 @@ td, th {
 | :----: | :----: | :----: | :----: | :----: | :----: |
 | [**github**](https://github.com/) | [**chatgpt**](https://chat.openai.com/) | [**电子书1**](https://www.studocu.com/row/home) | [**电子书2**](https://www.book123.info/) | [**翻译**](https://translate.google.com/?sl=en&tl=zh-CN&op=translate&hl=en) |[**clash配置**](http://clash.razord.top/#/proxies)|
 |[**图片->文字**](https://web.baimiaoapp.com/)|[**知识星球**](https://wx.zsxq.com/dweb2/login)|[**bywave**](https://user.by.ltd/clientarea.php)|[**faker笔记**](https://skk1faker.github.io/)|[**五笔工具**](http://www.daziba.cn/wblx/)|[**poe机器人**](https://poe.com/)|
-|[**文件传输助手**](https://filehelper.weixin.qq.com/)|[鼠标测试工具](https://www.onlinemictest.com/zh/mouse-test/)|[linux安装包](https://aur.archlinux.org/)|[latex妈咪书](https://www.latexlive.com/home)|[vivo原子笔记](https://pc.vivo.com/suite#/note)||
+|[**文件传输助手**](https://filehelper.weixin.qq.com/)|[鼠标测试工具](https://www.onlinemictest.com/zh/mouse-test/)|[linux安装包](https://aur.archlinux.org/)|[latex妈咪书](https://www.latexlive.com/home)|[vivo原子笔记](https://pc.vivo.com/suite#/note)|[野火开发板教程](https://doc.embedfire.com/mcu/stm32/f103zhinanzhe/std/zh/latest/book/LED_register.html)|
 
 ---
 

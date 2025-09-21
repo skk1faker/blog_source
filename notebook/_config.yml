@@ -113,3 +113,12 @@ search:
   field: post
   format: html
   limit: 10000
+
+heading_index:
+  enable: true                 # 是否启用插件，默认为 true
+  index_styles: "{1} {1} {1} {1} {1} {1}" # 定义各级标题的索引样式
+  connector: "."               # 索引数字之间的连接符，例如生成 "1.2.1"
+  global_prefix: ""            # 添加到整个索引前的全局前缀（可选）
+  global_suffix: ". "          # 添加到整个索引后的全局后缀（可选），如 ". " 会使编号后带一个点号和空格
+  start_level: 1               # 从第几级标题开始添加编号（1 表示从 h1 开始）
+  allow_html: false            # 是否允许标题中包含 HTML，默认为 false
