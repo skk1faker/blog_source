@@ -81,6 +81,48 @@ mos管一旦击穿就坏了. 此时mos就相当一个二极管.
 
 间 
 
+## 如何一键下载
+
+一键下载需要ch341芯片参与，需要能识别到这个芯片
+
+这里给出一键下载的指令
+```bash
+stm32flash -b 115200 -R -i  '-dtr,rts,dtr,rts'   -w ./build/reboot.bin -v -g 0x08000000 /dev/ttyUSB0
+```
+
+我这里写了个脚本
+
+``` bash
+#!/bin/bash
+
+# 配置参数（根据实际情况修改）
+SERIAL_PORT="/dev/ttyUSB0"  # 串口设备路径（通过 ls /dev/ttyUSB* 查看）
+BAUDRATE="115200"           # 波特率（固定，STM32 bootloader 支持 115200）
+HEX_FILE=$1 # 程序文件路径（.hex 或 .bin）
+
+# 检查工具是否安装
+if ! command -v stm32flash &> /dev/null; then
+    echo "错误：未安装 stm32flash，请先安装"
+    exit 1
+fi
+
+# 检查程序文件是否存在
+if [ ! -f "$HEX_FILE" ]; then
+    echo "错误：程序文件 $HEX_FILE 不存在"
+    exit 1
+fi
+
+# 执行烧录（-w 写入，-v 校验，-g 0x0 烧录后从 0x0 地址启动）
+# stm32flash -w "$HEX_FILE" -v -g 0x0 -b "$BAUDRATE" "$SERIAL_PORT"
+# stm32flash -b 115200 -R -i  '-dtr,rts,dtr,rts'   -w ./build/reboot.bin -v -g 0x08000000 /dev/ttyUSB0
+stm32flash -b 115200 -R -i  '-dtr,rts,dtr,rts'   -w ${HEX_FILE} -v -g 0x08000000 ${SERIAL_PORT}
+```
+
+不得不说，有时候ai是没用的，硬件问题问ai可能永远都找不到答案
+
+
+
+
 ## 输出模式
 ### 什么是开漏模式,什么是推挽模式
 
@@ -147,6 +189,16 @@ mos管一旦击穿就坏了. 此时mos就相当一个二极管.
 
 ![时钟树全貌](time_clock_tree.png)
 
+2。 什么是HSE,HSI
+
+HSI是芯片内部时钟，依靠rc震荡电路产生时钟，并不精准  
+HSE是外部时钟，如果能在板子上看到一个长方形的银色器件，标有频率（8MHZ）多半就是外部时钟了，这个时钟精准，多数使用这个时钟。
+
+
+一定要注意，使用时时钟树的hse输入频率一定要设置正确。否则可能会出现“usart不能正常使用（波特率设置不准确）”， 定时器定时不精准（hal_delay()定时总是和预想时间不一致）
+![hse_config](hse_config.png)
+
+
 ### stm32 系统总线
 
 [参考自](https://blog.csdn.net/qq_62689333/article/details/134367247)
@@ -182,9 +234,9 @@ mos管一旦击穿就坏了. 此时mos就相当一个二极管.
 11：辅助功能IO时钟使能 |
 |可用位|20位，都是R/W，一位对应一个外设，0关闭，1打开|11位，其余的bit保留(保留位读为0)|
 
-### 中断
+## 中断
 
-#### NVIC的工作原理
+### NVIC的工作原理
 
 NVIC是ARM Cortex-M系列处理器中的中断控制器，它负责管理和处理所有中断请求。NVIC中有一个中断向量表
 
@@ -197,7 +249,7 @@ NVIC的中断优先级是由两个寄存器控制的：中断优先级寄存器
 
 （ICSR）。IPR寄存器用于设置每个中断的优先级，而ICSR寄存器用于控制中断的使能和处理。
 
-#### EXTI外设的工作原理
+### EXTI外设的工作原理
 
 EXTI（External Interrupt）外设是ARM Cortex-M系列处理器中的外部中断模块，它允许外部设备向处理器发送中断请求。EXTI外设支持多个中断输入线，每个中断输入线都可以配置为上升沿触发、下降沿触发、双边沿触发或者低电平触发。
 
@@ -216,7 +268,7 @@ NVIC和EXTI广泛应用于嵌入式系统和智能硬件中，常见的应用场
 3. 串口通信中断处理：使用NVIC中断控制器处理串口接收中断请求，实现串口通信功能。
 
 4. 操作系统调度中断：使用NVIC中断控制器处理操作系统调度中断请求，实现操作系统的任务调度和管理。
-#### NVIC中断管理
+### NVIC中断管理
 
 NVIC（Nested Vectored Interrupt Controller，嵌套向量中断控制器）是ARM Cortex-M系列微控制器中用于管理和控制中断的核心模块。 它的主要作用是接收中断请求，并根据优先级和中断向量表来调度和执行相应的中断服务程序。 简单来说，NVIC负责决定哪个中断优先被响应，以及如何响应中断。
 NVIC的核心功能包括：
@@ -237,7 +289,7 @@ NVIC也参与到低功耗模式管理中，在休眠模式下，它可以响应�
 
 总而言之，NVIC是微控制器中不可或缺的中断管理单元，它确保了系统能够及时、有效地响应各种中断事件，保证系统的稳定性和实时性。
 
-#### 简单的说
+### 简单的说
 
 NVIC的作用就是用来寻找中断函数地址, EXTI用来接收外部信息，然后产生中断给NVIC去查找相关执行函数。
 
@@ -615,6 +667,74 @@ openocd -f interface/cmsis-dap.cfg -f target/stm32f1x.cfg -c "init; reset halt; 
 
 之后就嫩烧录了，原因未知
 
+## 烧录时，出现双Double fault(双重故障)错误应怎样处理
+
+```bash
+Open On-Chip Debugger 0.12.0
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+        swd
+        Info : CMSIS-DAP: SWD supported
+        Info : CMSIS-DAP: JTAG supported
+        Info : CMSIS-DAP: FW Version = 1.0
+        Info : CMSIS-DAP: Interface Initialised (SWD)
+        Info : SWCLK/TCK = 1 SWDIO/TMS = 1 TDI = 1 TDO = 1 nTRST = 0 nRESET = 1
+        Info : CMSIS-DAP: Interface ready
+        Info : clock speed 2000 kHz
+        Info : SWD DPIDR 0x2ba01477
+        Info : [stm32f4x.cpu] Cortex-M4 r0p1 processor detected
+        Info : [stm32f4x.cpu] target has 6 breakpoints, 4 watchpoints
+        Info : starting gdb server for stm32f4x.cpu on 3333
+        Info : Listening on port 3333 for gdb connections
+        [stm32f4x.cpu] halted due to debug-request, current mode: Thread
+        xPSR: 0x01000000 pc: 0x08000cd4 msp: 0x20020000
+        Info : device id = 0x101f6413
+        Info : flash size = 1024 KiB
+        auto erase enabled
+        wrote 16384 bytes from file build/focf405.elf in 0.842014s (19.002 KiB/s)
+
+        Error: [stm32f4x.cpu] clearing lockup after double fault
+        [stm32f4x.cpu] halted due to debug-request, current mode: Handler HardFault
+        xPSR: 0x00000003 pc: 0xf3af4804 msp: 0x4c05b4f0
+        shutdown command invoked
+```
+
+此时的系统出现了严重的错误，（有可能此时芯片进入lockup状态，只有长按reset键才能解除lockup状态）之后重新烧入正常的程序即可。
+
+## 烧录时遇到 “Error: timed out while waiting for target halted”
+
+这中情况非常特殊，这里只给出一种情况的原因
+以下为烧录时遇到的情况。
+```bash
+Open On-Chip Debugger 0.12.0
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+swd
+Info : CMSIS-DAP: SWD supported
+Info : CMSIS-DAP: JTAG supported
+Info : CMSIS-DAP: FW Version = 1.0
+Info : CMSIS-DAP: Interface Initialised (SWD)
+Info : SWCLK/TCK = 1 SWDIO/TMS = 1 TDI = 0 TDO = 1 nTRST = 0 nRESET = 1
+Info : CMSIS-DAP: Interface ready
+Info : clock speed 2000 kHz
+Info : SWD DPIDR 0x2ba01477
+Info : [stm32f4x.cpu] Cortex-M4 r0p1 processor detected
+Info : [stm32f4x.cpu] target has 6 breakpoints, 4 watchpoints
+Info : starting gdb server for stm32f4x.cpu on 3333
+Info : Listening on port 3333 for gdb connections
+Info : [stm32f4x.cpu] external reset detected               // 这句可以看到reset一直被激活，所以不能烧录
+Error: timed out while waiting for target halted
+TARGET: stm32f4x.cpu - Not halted
+
+```
+解决的方法很简单，直接将3.3v电压接到板子的reset引脚上就行, 然后就突然能运行了。
+
+
+
+
+
 ## 串口输入输出使用方法
 ### minicom使用方法
 主要是工具如何配置
@@ -680,6 +800,78 @@ int main(void){
 
 }
 ```
+
+## 配置printf输出到串口
+
+```cpp
+
+int _write(int fd, char *ptr, int len) {
+	HAL_UART_Transmit(&huart1, (uint8_t *)ptr, len, HAL_MAX_DELAY);
+	//HAL_UART_Transmit_IT(&huart1, (uint8_t *)ptr, len);
+	return len;
+}
+
+```
+
+## spi 通讯
+
+spi通讯使用4根线
+1. 片选线cs，用于选择传输信号的对象
+2. 时钟线sclk
+3. 主-->从数据传输线
+4. 从-->主数据传输线
+
+工作方式如下：
+片选线信号为低电平时，设备开始通讯，片选线有多个，可以控制多个设备，但时钟和数据线都是复用的。
+
+![spi_line](spi_line.png)
+
+其中sclk用于同步时钟, mosi表述`master output slave input`, miso表示`master input slave output`, 从机上sdo表示从机`output`, sdi表示从机`input`
+
+控制时钟信号和片选线的设备为spi中的主设备，被控制的就是从设备
+
+其内部数据如下：
+
+![spi_internal](spi_internal.png)
+
+利用锁存器将,根据时钟信号的上升沿/下降沿将移位寄存器里面的数据以维持一位一位的移动.经过8次交换就会将移位寄存器中的数据全部交换。移动后将接收到的数据放在接收缓存器中, 中断或者其它程序就会处理这个数据,然后再讲发送缓存器中的数据放在移位寄存器中.
+
+[spi通信参考](https://www.bilibili.com/video/BV1anHZecEiP?spm_id_from=333.788.videopod.sections&vd_source=734d671621ce5093a858cf28daec3a86)
+
+### ssd1315屏幕的使用
+
+由于屏幕不需要输出数据，所以屏幕的sdo引脚是不存在的。屏幕存在如下引脚：
+
+1. GND: 接地
+2. VCC: 电源
+3. SCL: 时钟
+4. SDA: 传输数据, 连接主机MOSI
+5. RES: 当res为低电平时会触发复位。就是恢复出场设置
+6. DC: 区分传输的数据是命令/数据的线
+7. CS: 片选
+
+## pwm 输出
+
+计数模式对比
+
+![pwd_count_mode](pwd_count_mode.png)
+
+|模式|Center Aligned Mode 1|Center Aligned Mode 2|Center Aligned Mode 3|
+|:---:|:---:|:---:|:---:|
+|计数方向|从0向上计数到ARR，再从ARR向下计数到0|同左|同左|
+|比较事件触发点|仅在向下计数过程中，当CNT=CCR时置位比较标志|同左|(未知)|
+|中断/DMA请求|经测试，更新中断会产生两次|||
+|应用|foc控制中，需要在pwm周期后半段进行电流采样或者算法更新|需要向上计数时间同步的操作，或者在周期开始后立即触发|需要高频同步响应的应用，如编码器接口、实时更新PWM参数|
+
+| 对比项 | PWM模式1 | PWM模式2 |
+| :--- | :--- | :--- |
+| **核心逻辑** | `CNT < CCR` 时输出有效电平 | `CNT > CCR` 时输出有效电平 |
+| **有效电平条件** | 计数值小于比较值时有效 | 计数值大于比较值时有效 |
+| **电平输出关系** | 模式1和模式2的输出电平关系是互补的 | 模式1和模式2的输出电平关系是互补的 |
+| **寄存器配置位** | `TIMx_CCMRx`寄存器中的`OCxM`位设置为`110` | `TIMx_CCMRx`寄存器中的`OCxM`位设置为`111` |
+| **典型应用场景** | 常规PWM输出，如控制LED亮度、电机速度等 | 生成与模式1互补的PWM信号，常用于互补输出或特定逻辑控制 |
+
+![pwm的config](pwm_alarm_config.png)
 
 # 电机
 

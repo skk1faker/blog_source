@@ -27,4 +27,18 @@ git difftool "version1" "version2" -y
 git difftool -d "version1" "version2"
 ```
 
+3. 如果多个文件比较，则加上--dir-diff， 就会在一个目录中把所有需要比较的文件加上了
+```git
+git difftool --dir-diff &
+```
+
+4. meld会检测当前打开目录是否是git,如果是的话，则会直接节进行git比较操作。
+
+```
+meld .
+
+```
+
+
+
 [参考自](https://stackoverflow.com/questions/2006032/view-differences-of-branches-with-meld)
